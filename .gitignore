@@ -1,0 +1,2 @@
+# Helm package output (helm package ./dify)
+*.tgz
