@@ -1,4 +1,4 @@
-# test0407 Dify Deployment Runbook
+# test0407 Dify + Ollama Deployment Runbook
 
 ## 1. Commit changes
 
@@ -90,6 +90,47 @@ curl -k -I https://<EXTERNAL-IP>/apps
 ```
 
 Expected: `/apps` returns `200 OK`.
+
+## 8. Install otwld/ollama-helm
+
+```bash
+export KUBECONFIG=/home/nutanix/yukicluster-kubeconfig.conf
+cd /home/nutanix
+git clone https://github.com/otwld/ollama-helm.git
+cd /home/nutanix/ollama-helm
+helm upgrade --install ollama . -n ollama --create-namespace --wait --timeout 15m
+```
+
+If the repository already exists:
+
+```bash
+cd /home/nutanix/ollama-helm
+git pull
+helm upgrade --install ollama . -n ollama --create-namespace --wait --timeout 15m
+```
+
+Verify:
+
+```bash
+helm list -n ollama
+kubectl get pods -n ollama -o wide
+kubectl get svc -n ollama -o wide
+```
+
+Expected:
+- Helm status is `deployed`
+- `ollama` pod is `Running`
+- Service `ollama` is available on port `11434`
+
+## 9. Pull model in Ollama pod
+
+```bash
+export KUBECONFIG=/home/nutanix/yukicluster-kubeconfig.conf
+kubectl exec -it deploy/ollama -n ollama -- ollama pull 7shi/ezo-gemma-2-jpn:2b-instruct-q8_0
+kubectl exec deploy/ollama -n ollama -- ollama list
+```
+
+Expected: `7shi/ezo-gemma-2-jpn:2b-instruct-q8_0` appears in model list.
 
 ## Security notes
 
